@@ -1,60 +1,51 @@
 'use client'
-import Image from "next/image";
 import { useState } from "react";
-import { Box, Stack, TextField, Button } from "@mui/material";
+import { Box, Stack, TextField, Button, useMediaQuery, useTheme, Typography, IconButton } from "@mui/material";
+import { sendChatMessage } from './api';  // Import the API utility function
+import SendIcon from '@mui/icons-material/Send'; 
 
 export default function Home() {
   const [messages, setMessages] = useState([
     {
       role: 'assistant',
       content: `
-Hello and welcome to healthcare support service! 
-
-I'm here to assist you with any questions or concerns. How can I assist you today?
-`
+            Hello, How can I assist you today?
+            `
     }
   ]);
 
   const [message, setMessage] = useState("");
+  const theme = useTheme();
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
 
   const sendMessage = async () => {
-    setMessage('')  // Clear the input field
+    if (!message.trim()) return;  // Don't send empty messages
+  
     setMessages((messages) => [
       ...messages,
-      { role: 'user', content: message },  // Add the user's message to the chat
-      { role: 'assistant', content: '' },  // Add a placeholder for the assistant's response
-    ])
+      { role: 'user', content: message },
+      { role: 'assistant', content: '...' },
+    ]);
+    setMessage('');
   
-    // Send the message to the server
-    const response = await fetch('/api/chat', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify([...messages, { role: 'user', content: message }]),
-    });
-
-    const reader = response.body.getReader();  // Get a reader to read the response body
-    const decoder = new TextDecoder();  // Create a decoder to decode the response text
-
-    let result = ''
-    // Function to process the text from the response
-    return reader.read().then(function processText({ done, value }) {
-      if (done) {
-        return result;
-      }
-      const text = decoder.decode(value || new Uint8Array(), { stream: true });  // Decode the text
+    try {
+      const apiKey = "put-api-key-here";  // Move your API key here
+      const assistantMessage = await sendChatMessage(messages, apiKey);
+      
       setMessages((messages) => {
-        let lastMessage = messages[messages.length - 1];  // Get the last message (assistant's placeholder)
-        let otherMessages = messages.slice(0, messages.length - 1);  // Get all other messages
+        let lastMessages = messages.slice(0, -1);
         return [
-          ...otherMessages,
-          { ...lastMessage, content: lastMessage.content + text },  // Append the decoded text to the assistant's message
+          ...lastMessages,
+          { role: 'assistant', content: assistantMessage },
         ];
       });
-      return reader.read().then(processText);  // Continue reading the next chunk of the response
-    });
-  }
+    } catch (error) {
+      setMessages((messages) => [
+        ...messages,
+        { role: 'assistant', content: "I'm sorry, but I encountered an error. Please try again later." },
+      ]);
+    }
+  };
 
   return (
     <Box
@@ -62,53 +53,130 @@ I'm here to assist you with any questions or concerns. How can I assist you toda
       height="100vh"
       display="flex"
       flexDirection="column"
-      justifyContent="center"
-      alignItems="center"
     >
-      <Stack
-        direction="column"
-        width="600px"
-        height="700px"
-        border="1px solid black"
+      <Box
+        width="100%"
         p={2}
-        spacing={3}
+        bgcolor="primary.main"
+        color="white"
+        textAlign="center"
+        position="fixed"
+        top={0}
+        left={0}
+        zIndex={1000}
+        boxShadow={0}
+      >
+        <Typography variant="h6">Healthcare Support Chat</Typography>
+      </Box>
+      <Box
+        width="100%"
+        height="calc(100vh - 64px)" 
+        display="flex"
+        flexDirection="column"
+        justifyContent="center"
+        alignItems="center"
+        mt="64px"
+        p={2}
       >
         <Stack
           direction="column"
-          spacing={2}
-          flexGrow={1}
-          overflow="auto"
-          maxHeight="100%"
+          width={isSmallScreen ? "100%" : "600px"}
+          height="100%"
+          border="1px solid #ddd" 
+          borderRadius={8}
+          bgcolor="white"
+          p={0}
+          sx={{
+            overflowY: 'scroll',  // Enable vertical scrolling
+            '&::-webkit-scrollbar': {
+              display: 'none',  // Hide scrollbar for WebKit-based browsers
+            },
+            scrollbarWidth: 'none',  // Hide scrollbar for Firefox
+          }}
         >
-          {messages.map((message, index) => (
-            <Box
-              key={index}
-              display="flex"
-              justifyContent={
-                message.role === 'assistant' ? 'flex-start' : 'flex-end'
-              }
-            >
+          <Stack
+            direction="column"
+            spacing={2}
+            flexGrow={1}
+            overflow="auto"
+            maxHeight="calc(100% - 80px)" 
+            p={1}
+          >
+            {messages.map((message, index) => (
               <Box
-                bgcolor={
-                  message.role === 'assistant'
-                    ? 'primary.main' : 'secondary.main'
+                key={index}
+                display="flex"
+                justifyContent={
+                  message.role === 'assistant' ? 'flex-start' : 'flex-end'
                 }
-                color="white"
-                borderRadius={16}
-                p={3}
+                p={1}
               >
-                {message.content}
+                <Box
+                  bgcolor={
+                    message.role === 'assistant'
+                      ? 'primary.main' : 'secondary.main'
+                  }
+                  color="white"
+                  borderRadius={5}
+                  p={1.5}
+                  maxWidth="70%"
+                  minWidth="150px"
+                  position="relative"
+                  sx={{
+                    '&::before': {
+                      content: '""',
+                      position: 'absolute',
+                      bottom: '0px',
+                      left: message.role === 'assistant' ? '0px' : 'auto',
+                      right: message.role === 'user' ? '0px' : 'auto',
+                      width: 0,
+                      height: 0,
+                      borderLeft: message.role === 'assistant' ? '25px solid transparent' : 'none',
+                      borderRight: message.role === 'user' ? '25px solid transparent' : 'none',
+                      borderTop: '25px solid',
+                      borderTopColor: message.role === 'assistant' ? 'primary.main' : 'secondary.main',
+                      transform: 'rotate(180deg)',
+                      borderRadius: '10%',
+                    }
+                  }}
+                >
+
+                  {message.content}
+                  
+                </Box>
               </Box>
-            </Box>
-          ))}
+            ))}
+          </Stack>
+          <Box
+            display="flex"
+            alignItems="center"
+            p={2}
+            borderTop="0px solid #ddd"
+          >
+            <TextField 
+              label="Message" 
+              fullWidth 
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              variant="outlined"
+              InputProps={{
+                style: { borderRadius: 32, height: 48 }
+              }}
+              sx={{ mr: 1 }}
+            />
+              <IconButton
+              variant="contained" 
+              onClick={sendMessage}
+              color="primary"
+              style={{ borderRadius: 32, height: 56, width: 56 }}
+              >
+                <SendIcon />
+              </IconButton>
+              {/* Send */}
+
+          </Box>
         </Stack>
-        <Stack direction="row" spacing={2}>
-          <TextField label="Message" fullWidth value={message}
-            onChange={(e) => setMessage(e.target.value)}
-          />
-          <Button variant="contained" onClick={sendMessage}>Send</Button>
-        </Stack>
-      </Stack>
+      </Box>
     </Box>
   );
 }
