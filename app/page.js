@@ -1,7 +1,6 @@
 'use client'
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Box, Stack, TextField, Button, useMediaQuery, useTheme, Typography, IconButton } from "@mui/material";
-import { sendChatMessage } from './api';  // Import the API utility function
 import SendIcon from '@mui/icons-material/Send'; 
 
 export default function Home() {
@@ -21,33 +20,71 @@ export default function Home() {
   const sendMessage = async () => {
     if (!message.trim()) return;  // Don't send empty messages
   
+    setMessage('')
     setMessages((messages) => [
       ...messages,
       { role: 'user', content: message },
-      { role: 'assistant', content: '...' },
-    ]);
-    setMessage('');
+      { role: 'assistant', content: '' },
+    ])
   
     try {
-      const apiKey = "put-api-key-here";  // Move your API key here
-      const assistantMessage = await sendChatMessage(messages, apiKey);
-      
-      setMessages((messages) => {
-        let lastMessages = messages.slice(0, -1);
-        return [
-          ...lastMessages,
-          { role: 'assistant', content: assistantMessage },
-        ];
-      });
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify([...messages, { role: 'user', content: message }]),
+      })
+  
+      if (!response.ok) {
+        throw new Error('Network response was not ok')
+      }
+  
+      const reader = response.body.getReader()
+      const decoder = new TextDecoder()
+  
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+        const text = decoder.decode(value, { stream: true })
+        setMessages((messages) => {
+          let lastMessage = messages[messages.length - 1]
+          let otherMessages = messages.slice(0, messages.length - 1)
+          return [
+            ...otherMessages,
+            { ...lastMessage, content: lastMessage.content + text },
+          ]
+        })
+      }
     } catch (error) {
+      console.error('Error:', error)
       setMessages((messages) => [
         ...messages,
         { role: 'assistant', content: "I'm sorry, but I encountered an error. Please try again later." },
-      ]);
+      ])
     }
-  };
+  }
+
+  // Enter key press function 
+  const handleKeyPress = (event) => {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault()
+      sendMessage()
+    }
+  }
+  // auto scrolling 
+  const messagesEndRef = useRef(null)
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+  }
+
+  useEffect(() => {
+    scrollToBottom()
+  }, [messages])
 
   return (
+    <Box style={{ backgroundImage: `url(${'https://img.freepik.com/free-photo/flat-lay-pills-stethoscope-arrangement_23-2149341647.jpg?w=900&t=st=1723281804~exp=1723282404~hmac=de20454ef9c968043895811e37fd896019be72218809c8961cb41e76eaa0ea84'})`, backgroundSize: 'cover' }}>
     <Box
       width="100vw"
       height="100vh"
@@ -61,10 +98,6 @@ export default function Home() {
         color="white"
         textAlign="center"
         position="fixed"
-        top={0}
-        left={0}
-        zIndex={1000}
-        boxShadow={0}
       >
         <Typography variant="h6">Healthcare Support Chat</Typography>
       </Box>
@@ -146,6 +179,7 @@ export default function Home() {
                 </Box>
               </Box>
             ))}
+            <div ref={messagesEndRef} />
           </Stack>
           <Box
             display="flex"
@@ -158,6 +192,7 @@ export default function Home() {
               fullWidth 
               value={message}
               onChange={(e) => setMessage(e.target.value)}
+              onKeyPress={handleKeyPress}
               variant="outlined"
               InputProps={{
                 style: { borderRadius: 32, height: 48 }
@@ -177,6 +212,7 @@ export default function Home() {
           </Box>
         </Stack>
       </Box>
+    </Box>
     </Box>
   );
 }
