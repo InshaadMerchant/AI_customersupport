@@ -9,8 +9,10 @@ import {
   useTheme,
   Typography,
   IconButton,
+  Collapse,
 } from "@mui/material";
 import SendIcon from "@mui/icons-material/Send";
+import InfoIcon from "@mui/icons-material/Info";
 
 export default function Home() {
   const [messages, setMessages] = useState([
@@ -23,11 +25,12 @@ export default function Home() {
   ]);
 
   const [message, setMessage] = useState("");
+  const [showAbout, setShowAbout] = useState(false); 
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
 
   const sendMessage = async () => {
-    if (!message.trim()) return; // Don't send empty messages
+    if (!message.trim()) return; 
 
     setMessage("");
     setMessages((messages) => [
@@ -133,7 +136,34 @@ export default function Home() {
             />
           </Box>
           <Typography variant="h6">Healthcare Support Chat</Typography>
+          <IconButton
+            color="inherit"
+            onClick={() => setShowAbout((prev) => !prev)}
+            style={{ marginLeft: "auto" }}
+          >
+            <InfoIcon />
+          </IconButton>
         </Box>
+
+        <Collapse in={showAbout}>
+          <Box
+            width="100%"
+            bgcolor="background.paper"
+            p={2}
+            position="fixed"
+            bottom={0}
+            left={0}
+            boxShadow={3}
+            zIndex={1100} // Make sure it's above the chat box
+          >
+            <Typography variant="h6" gutterBottom>
+              About This App
+            </Typography>
+            <Typography>
+              This application provides healthcare support through a chat interface. You can ask questions or get information about various health topics. The system is designed to offer quick and useful responses to help you with your healthcare needs.
+            </Typography>
+          </Box>
+        </Collapse>
 
         <Box
           width="100%"
