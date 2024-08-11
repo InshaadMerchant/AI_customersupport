@@ -19,7 +19,7 @@ export default function Home() {
   const [message, setMessage] = useState("");
   const [showAbout, setShowAbout] = useState(false);
   const [welcome, setWelcome] = useState(true);
-  const [viewportHeight, setViewportHeight] = useState(window.innerHeight);
+  const [viewportHeight, setViewportHeight] = useState(0);
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
 
@@ -99,17 +99,20 @@ export default function Home() {
   };
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  useEffect(() => {
     const handleResize = () => setViewportHeight(window.innerHeight);
+
+    // Set the initial viewport height
+    handleResize();
 
     window.addEventListener("resize", handleResize);
     return () => {
       window.removeEventListener("resize", handleResize);
     };
   }, []);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   return (
     <Box
