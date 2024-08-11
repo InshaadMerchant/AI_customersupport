@@ -19,6 +19,7 @@ export default function Home() {
   const [message, setMessage] = useState("");
   const [showAbout, setShowAbout] = useState(false);
   const [welcome, setWelcome] = useState(true);
+  const [viewportHeight, setViewportHeight] = useState(window.innerHeight);
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
 
@@ -101,18 +102,29 @@ export default function Home() {
     scrollToBottom();
   }, [messages]);
 
+  useEffect(() => {
+    const handleResize = () => setViewportHeight(window.innerHeight);
+
+    window.addEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
   return (
     <Box
       style={{
         backgroundImage: `url(${"https://img.freepik.com/free-photo/flat-lay-pills-stethoscope-arrangement_23-2149341647.jpg?w=900&t=st=1723281804~exp=1723282404~hmac=de20454ef9c968043895811e37fd896019be72218809c8961cb41e76eaa0ea84"})`,
         backgroundSize: "cover",
+        overflow: "hidden",
       }}
     >
       <Box
         width="100vw"
-        height="100vh"
+        height={`${viewportHeight}px`} // Use viewportHeight state
         display="flex"
         flexDirection="column"
+        style={{ overflow: "hidden" }}
       >
         <Box
           width="100%"
@@ -124,6 +136,7 @@ export default function Home() {
           display="flex"
           justifyContent="center"
           alignItems="center"
+          zIndex={1000}
         >
           <Box
             display="flex"
@@ -163,38 +176,45 @@ export default function Home() {
             boxShadow={3}
             zIndex={1100}
           >
-<Box
-  style={{
-    maxWidth: "600px",  // Set a maximum width for the content
-    margin: "0 auto",   // Center-align the content horizontally
-    textAlign: "center", // Center-align text
-    padding: "16px",    // Optional padding for better spacing
-  }}
->
-  <Typography variant="h6" gutterBottom>
-    About This App
-  </Typography>
+            <Box
+              style={{
+                maxWidth: "600px",
+                margin: "0 auto",
+                textAlign: "center",
+                padding: "16px",
+              }}
+            >
+              <Typography variant="h6" gutterBottom>
+                About This App
+              </Typography>
 
-  <Typography paragraph>
-    This application provides healthcare support through a chat interface. You can ask questions or get information about various health topics. The system is designed to offer quick and useful responses to help you with your healthcare needs.
-  </Typography>
+              <Typography paragraph>
+                This application provides healthcare support through a chat
+                interface. You can ask questions or get information about
+                various health topics. The system is designed to offer quick and
+                useful responses to help you with your healthcare needs.
+              </Typography>
 
-  <Typography paragraph>
-    The healthcare customer assistance bot guides you based on conditions, symptoms, and other details provided. It does not prescribe any medicine but suggests safety precautions, measures, and recommended processes to avoid severity. Additionally, the bot can recommend which specialist you might need to see based on your conditions and symptoms.
-  </Typography>
+              <Typography paragraph>
+                The healthcare customer assistance bot guides you based on
+                conditions, symptoms, and other details provided. It does not
+                prescribe any medicine but suggests safety precautions,
+                measures, and recommended processes to avoid severity.
+                Additionally, the bot can recommend which specialist you might
+                need to see based on your conditions and symptoms.
+              </Typography>
 
-  <Typography variant="body2" color="textSecondary">
-    Authors: Umer Ghafoor, Muneeb ul Haq, Inshaad Merchant
-  </Typography>
-</Box>
-
+              <Typography variant="body2" color="textSecondary">
+                Authors: Umer Ghafoor, Muneeb ul Haq, Inshaad Merchant
+              </Typography>
+            </Box>
           </Box>
         </Collapse>
 
         {welcome ? (
           <Box
             width="100%"
-            height="100%"
+            height={`calc(${viewportHeight}px - 64px)`} // Adjust height based on header
             display="flex"
             flexDirection="column"
             justifyContent="center"
@@ -224,12 +244,12 @@ export default function Home() {
             <Box display="flex" justifyContent="center" mt={3}>
               <Button
                 variant="contained"
-                color="primary" // Set button color to blue
+                color="primary"
                 onClick={startChat}
                 size="large"
                 sx={{
-                  borderRadius: 28, // Make the button round
-                  padding: "12px 24px", // Add padding for a better look
+                  borderRadius: 28,
+                  padding: "12px 24px",
                 }}
               >
                 Start Chat
@@ -239,13 +259,16 @@ export default function Home() {
         ) : (
           <Box
             width="100%"
-            height="calc(100vh - 64px)"
+            height={`calc(${viewportHeight}px - 64px)`} // Adjust height based on header
             display="flex"
             flexDirection="column"
             justifyContent="center"
             alignItems="center"
             mt="64px"
             p={2}
+            sx={{
+              overflowY: "hidden",
+            }}
           >
             <Stack
               direction="column"
