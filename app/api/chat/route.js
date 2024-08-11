@@ -24,7 +24,7 @@ Your goal is to ensure that users receive helpful and accurate information to ma
 export async function POST(req) {
     const openai = new OpenAI({
         baseURL: "https://openrouter.ai/api/v1",
-        apiKey: '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',
+        apiKey: process.env.LLAMA9B_API_KEY,
       });
     const data = await req.json();
 
