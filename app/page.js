@@ -15,22 +15,25 @@ import SendIcon from "@mui/icons-material/Send";
 import InfoIcon from "@mui/icons-material/Info";
 
 export default function Home() {
-  const [messages, setMessages] = useState([
-    {
-      role: "assistant",
-      content: `
-            Hello, How can I assist you today?
-            `,
-    },
-  ]);
-
+  const [messages, setMessages] = useState([]);
   const [message, setMessage] = useState("");
-  const [showAbout, setShowAbout] = useState(false); 
+  const [showAbout, setShowAbout] = useState(false);
+  const [welcome, setWelcome] = useState(true);
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
 
+  const startChat = () => {
+    setWelcome(false);
+    setMessages([
+      {
+        role: "assistant",
+        content: "Hello, How can I assist you today?",
+      },
+    ]);
+  };
+
   const sendMessage = async () => {
-    if (!message.trim()) return; 
+    if (!message.trim()) return;
 
     setMessage("");
     setMessages((messages) => [
@@ -81,14 +84,13 @@ export default function Home() {
     }
   };
 
-  // Enter key press function
   const handleKeyPress = (event) => {
     if (event.key === "Enter" && !event.shiftKey) {
       event.preventDefault();
       sendMessage();
     }
   };
-  // auto scrolling
+
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -106,7 +108,12 @@ export default function Home() {
         backgroundSize: "cover",
       }}
     >
-      <Box width="100vw" height="100vh" display="flex" flexDirection="column">
+      <Box
+        width="100vw"
+        height="100vh"
+        display="flex"
+        flexDirection="column"
+      >
         <Box
           width="100%"
           p={1}
@@ -154,146 +161,211 @@ export default function Home() {
             bottom={0}
             left={0}
             boxShadow={3}
-            zIndex={1100} // Make sure it's above the chat box
+            zIndex={1100}
           >
-            <Typography variant="h6" gutterBottom>
-              About This App
-            </Typography>
-            <Typography>
-              This application provides healthcare support through a chat interface. You can ask questions or get information about various health topics. The system is designed to offer quick and useful responses to help you with your healthcare needs.
-            </Typography>
+<Box
+  style={{
+    maxWidth: "600px",  // Set a maximum width for the content
+    margin: "0 auto",   // Center-align the content horizontally
+    textAlign: "center", // Center-align text
+    padding: "16px",    // Optional padding for better spacing
+  }}
+>
+  <Typography variant="h6" gutterBottom>
+    About This App
+  </Typography>
+
+  <Typography paragraph>
+    This application provides healthcare support through a chat interface. You can ask questions or get information about various health topics. The system is designed to offer quick and useful responses to help you with your healthcare needs.
+  </Typography>
+
+  <Typography paragraph>
+    The healthcare customer assistance bot guides you based on conditions, symptoms, and other details provided. It does not prescribe any medicine but suggests safety precautions, measures, and recommended processes to avoid severity. Additionally, the bot can recommend which specialist you might need to see based on your conditions and symptoms.
+  </Typography>
+
+  <Typography variant="body2" color="textSecondary">
+    Authors: Umer Ghafoor, Muneeb ul Haq, Inshaad Merchant
+  </Typography>
+</Box>
+
           </Box>
         </Collapse>
 
-        <Box
-          width="100%"
-          height="calc(100vh - 64px)"
-          display="flex"
-          flexDirection="column"
-          justifyContent="center"
-          alignItems="center"
-          mt="64px"
-          p={2}
-        >
-          <Stack
-            direction="column"
-            width={isSmallScreen ? "100%" : "600px"}
+        {welcome ? (
+          <Box
+            width="100%"
             height="100%"
-            border="1px solid #ddd"
-            borderRadius={8}
-            bgcolor="white"
-            p={0}
-            sx={{
-              overflowY: "scroll",
-              "&::-webkit-scrollbar": {
-                display: "none",
-              },
-              scrollbarWidth: "none",
-            }}
+            display="flex"
+            flexDirection="column"
+            justifyContent="center"
+            alignItems="center"
+            p={2}
+            mt="64px"
+          >
+            <Typography variant="h4" color="white" gutterBottom align="center">
+              Welcome to Healthcare Support Chat
+            </Typography>
+
+            <Typography variant="h6" color="white" gutterBottom align="center">
+              Click the button below to start chatting with our assistant.
+            </Typography>
+
+            <Typography
+              variant="body1"
+              color="white"
+              align="center"
+              gutterBottom
+            >
+              Note: This chat is designed to provide general healthcare
+              information and support. For any serious or urgent medical
+              concerns, please contact a healthcare professional directly.
+            </Typography>
+
+            <Box display="flex" justifyContent="center" mt={3}>
+              <Button
+                variant="contained"
+                color="primary" // Set button color to blue
+                onClick={startChat}
+                size="large"
+                sx={{
+                  borderRadius: 28, // Make the button round
+                  padding: "12px 24px", // Add padding for a better look
+                }}
+              >
+                Start Chat
+              </Button>
+            </Box>
+          </Box>
+        ) : (
+          <Box
+            width="100%"
+            height="calc(100vh - 64px)"
+            display="flex"
+            flexDirection="column"
+            justifyContent="center"
+            alignItems="center"
+            mt="64px"
+            p={2}
           >
             <Stack
               direction="column"
-              spacing={2}
-              flexGrow={1}
-              overflow="auto"
-              maxHeight="calc(100% - 80px)"
-              p={1}
+              width={isSmallScreen ? "100%" : "600px"}
+              height="100%"
+              border="1px solid #ddd"
+              borderRadius={8}
+              bgcolor="white"
+              p={0}
+              sx={{
+                overflowY: "scroll",
+                "&::-webkit-scrollbar": {
+                  display: "none",
+                },
+                scrollbarWidth: "none",
+              }}
             >
-              {messages.map((message, index) => (
-                <Box
-                  key={index}
-                  display="flex"
-                  justifyContent={
-                    message.role === "assistant" ? "flex-start" : "flex-end"
-                  }
-                  p={1}
-                >
-                  <Box
-                    bgcolor={
-                      message.role === "assistant"
-                        ? "primary.main"
-                        : "secondary.main"
-                    }
-                    color="white"
-                    borderRadius={5}
-                    p={1.5}
-                    maxWidth="70%"
-                    minWidth="50px"
-                    minHeight="50px"
-                    position="relative"
-                    sx={{
-                      "&::before": {
-                        content: '""',
-                        position: "absolute",
-                        bottom: "0px",
-                        left: message.role === "assistant" ? "0px" : "auto",
-                        right: message.role === "user" ? "0px" : "auto",
-                        width: 0,
-                        height: 0,
-                        borderLeft:
-                          message.role === "assistant"
-                            ? "25px solid transparent"
-                            : "none",
-                        borderRight:
-                          message.role === "user"
-                            ? "25px solid transparent"
-                            : "none",
-                        borderTop: "25px solid",
-                        borderTopColor:
-                          message.role === "assistant"
-                            ? "primary.main"
-                            : "secondary.main",
-                        transform: "rotate(180deg)",
-                        borderRadius: "10%",
-                      },
-                    }}
-                  >
-                    <Typography
-                      dangerouslySetInnerHTML={{
-                        __html: message.content
-                          .replace(/\n/g, "<br />") // Replace newlines with <br />
-                          .replace(/\*\*(.*?)\*\*/g, "<b>$1</b>") // Replace **text** with <b>text</b>
-                          .replace(/^\* (.*?)(<br \/>|$)/gm, "<li>$1</li>") // Replace * item with <li>item</li>
-                          .replace(/<\/li>(\s*<br \/>)+/g, "</li>") // Remove line breaks after list items
-                          .replace(/(<li>.*<\/li>)/g, "<ul>$1</ul>"), // Wrap <li> elements with <ul>
-                      }}
-                    />
-                  </Box>
-                </Box>
-              ))}
-
-              <div ref={messagesEndRef} />
-            </Stack>
-            <Box
-              display="flex"
-              alignItems="center"
-              p={2}
-              borderTop="0px solid #ddd"
-            >
-              <TextField
-                label="Message"
-                fullWidth
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                onKeyPress={handleKeyPress}
-                variant="outlined"
-                InputProps={{
-                  style: { borderRadius: 32, height: 48 },
-                }}
-                sx={{ mr: 1 }}
-              />
-              <IconButton
-                variant="contained"
-                onClick={sendMessage}
-                color="primary"
-                style={{ borderRadius: 32, height: 56, width: 56 }}
+              <Stack
+                direction="column"
+                spacing={2}
+                flexGrow={1}
+                overflow="auto"
+                maxHeight="calc(100% - 80px)"
+                p={1}
               >
-                <SendIcon />
-              </IconButton>
-              {/* Send */}
-            </Box>
-          </Stack>
-        </Box>
+                {messages.map((message, index) => (
+                  <Box
+                    key={index}
+                    display="flex"
+                    justifyContent={
+                      message.role === "assistant" ? "flex-start" : "flex-end"
+                    }
+                    p={1}
+                  >
+                    <Box
+                      bgcolor={
+                        message.role === "assistant"
+                          ? "primary.main"
+                          : "secondary.main"
+                      }
+                      color="white"
+                      borderRadius={5}
+                      p={1.5}
+                      maxWidth="70%"
+                      minWidth="50px"
+                      minHeight="50px"
+                      position="relative"
+                      sx={{
+                        "&::before": {
+                          content: '""',
+                          position: "absolute",
+                          bottom: "0px",
+                          left: message.role === "assistant" ? "0px" : "auto",
+                          right: message.role === "user" ? "0px" : "auto",
+                          width: 0,
+                          height: 0,
+                          borderLeft:
+                            message.role === "assistant"
+                              ? "25px solid transparent"
+                              : "none",
+                          borderRight:
+                            message.role === "user"
+                              ? "25px solid transparent"
+                              : "none",
+                          borderTop: "25px solid",
+                          borderTopColor:
+                            message.role === "assistant"
+                              ? "primary.main"
+                              : "secondary.main",
+                          transform: "rotate(180deg)",
+                          borderRadius: "10%",
+                        },
+                      }}
+                    >
+                      <Typography
+                        dangerouslySetInnerHTML={{
+                          __html: message.content
+                            .replace(/\n/g, "<br />")
+                            .replace(/\*\*(.*?)\*\*/g, "<b>$1</b>")
+                            .replace(/^\* (.*?)(<br \/>|$)/gm, "<li>$1</li>")
+                            .replace(/<\/li>(\s*<br \/>)+/g, "</li>")
+                            .replace(/(<li>.*<\/li>)/g, "<ul>$1</ul>"),
+                        }}
+                      />
+                    </Box>
+                  </Box>
+                ))}
+
+                <div ref={messagesEndRef} />
+              </Stack>
+              <Box
+                display="flex"
+                alignItems="center"
+                p={2}
+                borderTop="0px solid #ddd"
+              >
+                <TextField
+                  label="Message"
+                  fullWidth
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  variant="outlined"
+                  InputProps={{
+                    style: { borderRadius: 32, height: 48 },
+                  }}
+                  sx={{ mr: 1 }}
+                />
+                <IconButton
+                  variant="contained"
+                  onClick={sendMessage}
+                  color="primary"
+                  style={{ borderRadius: 32, height: 56, width: 56 }}
+                >
+                  <SendIcon />
+                </IconButton>
+              </Box>
+            </Stack>
+          </Box>
+        )}
       </Box>
     </Box>
   );
